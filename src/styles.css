@@ -1,1 +1,12 @@
 /* You can add global styles to this file, and also import other style files */
+.line {
+    fill: none;
+    stroke: red;
+    stroke-width: 2px;
+  }
+
+.gridLine path, .gridLine line{
+    fill: none;
+    shape-rendering: crispedges;
+    stroke: #e4e4e4;
+  }
