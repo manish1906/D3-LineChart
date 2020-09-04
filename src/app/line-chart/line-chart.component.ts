@@ -6,7 +6,9 @@ import * as d3 from 'd3';
   styleUrls: ['./line-chart.component.css']
 })
 export class LineChartComponent implements OnInit {
-  @Input() myData;
+  @Input() lineData1;
+  @Input() lineData2;
+ // @Input() w:number;
   private width = 1745;
   private height = 250;
   private margin = { top: 20, right: 50, bottom: 20, left: 50 };
@@ -14,6 +16,7 @@ export class LineChartComponent implements OnInit {
   private xscale;
   private yscale;
   private lineData;
+  private myColor;
   // private myData = [{
   //   "date": 'January',
   //   "value": 400,
@@ -79,17 +82,27 @@ export class LineChartComponent implements OnInit {
   constructor() { }
 
   ngOnInit(): void {
+  //  console.log("w"+this.w)
+    debugger
     this.initSvg();
-    this.initScale();
+    this.initScale(this.lineData1);
     this.drawGridLines();
     this.drawAxis();
     this.drawLine();
+    //2
+    // this.initSvg();
+    // this.initScale(this.lineData2);
+    // debugger
+    // this.drawGridLines();
+    // this.drawAxis();
+    // this.drawLine();
 
 
   }
 
   private initSvg() {
-    var that = this;
+   // var that = this;
+  // console.log("wi"+this.w)
     this.svg = d3.select("#lineChart")
       .append("svg")
       .attr("width", this.width)
@@ -102,14 +115,15 @@ export class LineChartComponent implements OnInit {
 
 
   }
-  private initScale() {
-    var that = this;
-    var gr = Object.keys(this.myData[0]).filter(function (d) { return d !== "date" });
+  private initScale(myData:any) {
+    //var that = this;
+    debugger
+    var gr = Object.keys(myData[0]).filter(function (d) { return d !== "date" });
     this.lineData = gr.map(function (name) {
 
       return {
         name: name,
-        values: that.myData.map(function (d) {
+        values: myData.map(function (d) {
           return {
             date: d.date,
             value: +d[name]
@@ -117,9 +131,12 @@ export class LineChartComponent implements OnInit {
         })
       };
     });
-    console.log(this.lineData)
+    // A color scale: one color for each group
+    this.myColor = d3.scaleOrdinal()
+      .domain(gr)
+      .range(d3.schemeSet2);
     this.xscale = d3.scalePoint()
-      .domain(this.myData.map((d: any) => {               // This is what is written on the Axis: from January to December
+      .domain(myData.map((d: any) => {               // This is what is written on the Axis: from January to December
         //console.log(d.date)
         return d.date
       }))
@@ -129,8 +146,6 @@ export class LineChartComponent implements OnInit {
       //.domain([0, 500])
       .domain([
         d3.min(this.lineData, function (c) {
-
-
           return d3.min(c.values, function (v) {
             console.log("v" + v)
             return v.value;
@@ -186,9 +201,11 @@ export class LineChartComponent implements OnInit {
 
   private drawLine() {
     var that = this;
+    debugger
     //1. line generator
     var valueline = d3.line()
       .x(function (d, i) {
+        debugger
         return that.xscale(d.date);
       })
       .y(function (d) {
@@ -199,7 +216,7 @@ export class LineChartComponent implements OnInit {
     //1. Append the path, bind the data, and call the line generator
     this.svg.append("g").selectAll(".dot2").data(this.lineData).enter().append("path")
       //.data(this.lineData)
-      .attr("stroke", "red")
+      .attr("stroke",  function(d){ return that.myColor(d.name) })
       .attr("stroke-width", "3")
       .attr("fill", "none")
       .attr("d", function (d) {
@@ -210,19 +227,19 @@ export class LineChartComponent implements OnInit {
       .duration(1000);
 
     // Appends a circle for each datapoint
-    
-      this.svg.selectAll("myDots")
+
+    this.svg.selectAll("myDots")
       .data(this.lineData)
       .enter()
-        .append('g')
-        .style("fill","red")
+      .append('g')
+      .style("fill",  function(d){ return that.myColor(d.name) })
       // Second we need to enter in the 'values' part of this group
       .selectAll("myPoints")
-      .data(function(d){ return d.values })
+      .data(function (d) { return d.values })
       .enter()
       .append("circle")
-        .attr("cx", function(d) { return that.xscale(d.date) } )
-        .attr("cy", function(d) { return that.yscale(d.value) } )
+      .attr("cx", function (d) { return that.xscale(d.date) })
+      .attr("cy", function (d) { return that.yscale(d.value) })
       .attr("r", 5)
 
   };
