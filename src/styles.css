@@ -1,12 +1,45 @@
 /* You can add global styles to this file, and also import other style files */
-.line {
+.svg-container {
+  display: inline-block;
+  position: relative;
+  width: 100%;
+  padding-bottom: 100%;
+  vertical-align: top;
+  overflow: hidden;
+}
+.svg-content {
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+/* .line {
     fill: none;
     stroke: red;
     stroke-width: 2px;
-  }
+  } */
 
 .gridLine path, .gridLine line{
     fill: none;
     shape-rendering: crispedges;
     stroke: #e4e4e4;
   }
+  .focus circle {
+    fill: steelblue;
+}
+
+.focus text {
+    font-size: 14px;
+}
+  .tooltip {
+    fill: white;
+    stroke: #000;
+}
+
+.tooltip-date, .tooltip-likes {
+    font-weight: bold;
+}
+.overlay {
+  fill: none;
+  pointer-events: all;
+}
