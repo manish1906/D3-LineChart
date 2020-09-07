@@ -5,9 +5,9 @@ import d3Tip from "d3-tip";
   selector: 'app-line-chart',
   templateUrl: './line-chart.component.html',
   styleUrls: ['./line-chart.component.css'],
-  // host: {
-  //   '(window:resize)': 'drawChart(this)'
-  // }
+  host: {
+    '(window:resize)': 'drawChart(this)'
+  }
 })
 
 export class LineChartComponent implements OnInit {
@@ -35,7 +35,7 @@ export class LineChartComponent implements OnInit {
   ngOnInit(): void {
     //  console.log("w"+this.w)
     //this.drawChart();
-    console.log(window.innerWidth)
+    // console.log(window.innerWidth)
     this.initSvg();
     this.initScale(this.lineData1);
     //  this.drawGridLines();
@@ -45,7 +45,7 @@ export class LineChartComponent implements OnInit {
 
   };
   private initSvg() {
-     var that = this;
+    var that = this;
     // console.log("wi"+wi)
 
     this.svg = d3.select("#lineChart")
@@ -53,25 +53,7 @@ export class LineChartComponent implements OnInit {
       //  .attr("id", "chart")
       .attr("width", this.width)
       .attr("height", this.height)
-    // .attr('preserveAspectRatio','xMinYMin meet')
-    //.attr("viewBox", "0 0 1745 250")
-    // .classed("svg-content", true);
-    // console.log(Object.keys(this.myData[0]))
-    // var allGroup = d3.map(this.myData, function(d){return(d.name)}).keys()
-    //  var color = d3.scaleOrdinal(d3.schemeCategory10);
 
-    // color.domain(Object.keys(this.myData[0]).filter(function(d){ return d!== "date" }));
-    //window.addEventListener('resize',);
-    this.tip = d3Tip()
-
-    .attr('class', 'd3-tip')
-    .offset([-10, 0])
-    .html(function (d) {
-      debugger
-      console.log("html"+d)
-        return "<span style='background-color: yellow'><strong>Value:</strong> <span style='color:red'>" + d.date + "</span></span>";
-})
-    this.svg.call(this.tip,this);
 
   };
   private initScale(myData: any) {
@@ -107,15 +89,9 @@ export class LineChartComponent implements OnInit {
     this.yscale = d3.scaleLinear()
       //.domain([0, 500])
       .domain([0
-        // d3.min(this.lineData, function (c) {
-        //   return d3.min(c.values, function (v) {
-        //     console.log("v" + v)
-        //     return v.value;
-        //   });
-        // })
         ,
         d3.max(this.lineData, function (c) {
-          console.log("c" + c)
+
           //console.log( d3.max(c.values, function(v) {return v.value})
           return d3.max(c.values, function (v) {
             return v.value;
@@ -123,7 +99,7 @@ export class LineChartComponent implements OnInit {
         })
       ])
       .range([this.height - this.margin.bottom, this.margin.top]);      //reversed
-    console.log("y" + this.xscale(50))
+
   };
 
   private drawGridLines() {
@@ -191,10 +167,9 @@ export class LineChartComponent implements OnInit {
       });
 
     //1. Append the path, bind the data, and call the line generator
-    // var path=
+
     this.svg.selectAll(".dot2").data(this.lineData).enter().append("g")
       .append("path")
-      //.data(this.lineData)
       .attr("class", "line")
       .attr("stroke-width", "3")
       .attr("fill", "none")
@@ -206,12 +181,12 @@ export class LineChartComponent implements OnInit {
       .attr("stroke", function (d) { return that.myColor(d.name) })
       .transition()
       .duration(1000)
-        ;
+      ;
 
     // Appends a circle for each datapoint
 
 
-     this.svg.selectAll("myDots")
+    this.svg.selectAll("myDots")
       .data(this.lineData)
       .enter()
       .append('g')
@@ -222,45 +197,52 @@ export class LineChartComponent implements OnInit {
       .enter()
       .append("circle")
       .attr("class", "circle")
-     // .attr("id",function(i){return "circle"+i})
+      // .attr("id",function(i){return "circle"+i})
       .attr("cx", function (d) {
 
-         return that.xscale(d.date) })
+        return that.xscale(d.date)
+      })
       .attr("cy", function (d) { return that.yscale(d.value) })
       .attr("r", 5)
 
-      .attr("mouseover",
-       function(data,i) {
-        debugger
-        console.log("cir"+data+i)
-      //  that.tip.show(d,this);
-      }
+      .on("mousemove",
+        function (d, i) {
+          //console.log("cir"+d+i)
+          tip.show(i, this);
+        }
       )
-      .on('mouseout', function(d) {
-        debugger
-        d3.select(".d3-tip").transition().duration(1000).style("opacity", "0");
+      .on('mouseout', function (d) {
+
+        //  d3.select(".d3-tip").style("display", "none");
+        tip.hide();
       });
-      // this.svg.selectAll('.circle').data(this.lineData).on("mouseover",
-      //  function(d) {
-      //     debugger
-      //     console.log("cir"+d)
-      //   //  that.tip.show(d,this);
-      //   }
-      // )
+
+    //Tooltip
+    var tip = d3Tip()
+      .attr('class', 'd3-tip')
+      .offset([-10, 0])
+      .html(function (d) {
+        //  debugger
+        return "<span style='background-color: white;' ><strong>Month:</strong> <span style='color:red'>" + d.date + "</span><strong>Value:</strong> <span style='color:red'>" + d.value + "</span></span>";
+      })
+      .style("background-color", "white")
+      .style("border", "1px solid rgb(255,221,221)")
+
+    this.svg.call(tip);
 
 
 
-    }
-    private mouse(d){
-      debugger
-      console.log(d)
-      debugger
-      //var data1=data[0].values;
-      debugger
-     // this.tip.show(data1,this)
-debugger
+  }
+  private mouse(d) {
+    debugger
+    console.log(d)
+    debugger
+    //var data1=data[0].values;
+    debugger
+    // this.tip.show(data1,this)
+    debugger
 
-    }
+  }
   private drawLine2(myData) {
     var that = this;
     //    debugger
@@ -324,7 +306,7 @@ debugger
           //  console.log("val" + d.values)
           return valueline(d.values);
         });
-      console.log("ticks" + Math.max(currentWidth / 75, 2));
+      // console.log("ticks" + Math.max(currentWidth / 75, 2));
       this.x_axis.ticks(Math.max(currentWidth / 75, 2));
     }
     // // Add the last information needed for the circles: their X position
