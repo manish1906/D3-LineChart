@@ -1,12 +1,13 @@
 import { Component, OnInit, Input, ElementRef } from '@angular/core';
 import * as d3 from 'd3';
+import d3Tip from "d3-tip";
 @Component({
   selector: 'app-line-chart',
   templateUrl: './line-chart.component.html',
   styleUrls: ['./line-chart.component.css'],
-  host: {
-    '(window:resize)': 'drawChart(this)'
-  }
+  // host: {
+  //   '(window:resize)': 'drawChart(this)'
+  // }
 })
 
 export class LineChartComponent implements OnInit {
@@ -24,6 +25,7 @@ export class LineChartComponent implements OnInit {
   private lineData;
   private myColor;
   private circle;
+  private tip;
 
 
   constructor(private container: ElementRef) {
@@ -43,7 +45,7 @@ export class LineChartComponent implements OnInit {
 
   };
   private initSvg() {
-    // var that = this;
+     var that = this;
     // console.log("wi"+wi)
 
     this.svg = d3.select("#lineChart")
@@ -60,6 +62,16 @@ export class LineChartComponent implements OnInit {
 
     // color.domain(Object.keys(this.myData[0]).filter(function(d){ return d!== "date" }));
     //window.addEventListener('resize',);
+    this.tip = d3Tip()
+
+    .attr('class', 'd3-tip')
+    .offset([-10, 0])
+    .html(function (d) {
+      debugger
+      console.log("html"+d)
+        return "<span style='background-color: yellow'><strong>Value:</strong> <span style='color:red'>" + d.date + "</span></span>";
+})
+    this.svg.call(this.tip,this);
 
   };
   private initScale(myData: any) {
@@ -190,13 +202,16 @@ export class LineChartComponent implements OnInit {
         //  console.log("val" + d.values)
         return valueline(d.values);
       })
+
       .attr("stroke", function (d) { return that.myColor(d.name) })
       .transition()
-      .duration(1000);
+      .duration(1000)
+        ;
 
     // Appends a circle for each datapoint
 
-    this.svg.selectAll("myDots")
+
+     this.svg.selectAll("myDots")
       .data(this.lineData)
       .enter()
       .append('g')
@@ -207,66 +222,45 @@ export class LineChartComponent implements OnInit {
       .enter()
       .append("circle")
       .attr("class", "circle")
+     // .attr("id",function(i){return "circle"+i})
+      .attr("cx", function (d) {
 
-      .attr("cx", function (d) { return that.xscale(d.date) })
+         return that.xscale(d.date) })
       .attr("cy", function (d) { return that.yscale(d.value) })
-      .attr("r", 5);
+      .attr("r", 5)
 
-    this.circle = this.svg.append("g")
-      .attr("class", "focus")
-      .style("display", "none");
-
-    this.circle.append("circle")
-      .attr("r", 5);
-
-    this.circle.append("rect")
-      .attr("class", "tooltip")
-      .attr("width", 100)
-      .attr("height", 50)
-      .attr("x", 10)
-      .attr("y", -22)
-      .attr("rx", 4)
-      .attr("ry", 4);
-
-    this.circle.append("text")
-      .attr("class", "tooltip-date")
-      .attr("x", 18)
-      .attr("y", -2);
-
-    this.circle.append("text")
-      .attr("x", 18)
-      .attr("y", 18)
-      .text("Likes:");
-
-    this.circle.append("text")
-      .attr("class", "tooltip-likes")
-      .attr("x", 60)
-      .attr("y", 18);
-
-    this.circle.append("rect")
-      // .data(this.lineData)
-      .attr("class", "overlay")
-      .attr("width", this.width)
-      .attr("height", this.height)
-      .on("mouseover", function () { this.circle.style("display", null); })
-      .on("mouseout", function () { this.circle.style("display", "none"); })
-      .on("mousemove", this.mousemove(this.lineData))
+      .attr("mouseover",
+       function(data,i) {
+        debugger
+        console.log("cir"+data+i)
+      //  that.tip.show(d,this);
+      }
+      )
+      .on('mouseout', function(d) {
+        debugger
+        d3.select(".d3-tip").transition().duration(1000).style("opacity", "0");
+      });
+      // this.svg.selectAll('.circle').data(this.lineData).on("mouseover",
+      //  function(d) {
+      //     debugger
+      //     console.log("cir"+d)
+      //   //  that.tip.show(d,this);
+      //   }
+      // )
 
 
 
+    }
+    private mouse(d){
+      debugger
+      console.log(d)
+      debugger
+      //var data1=data[0].values;
+      debugger
+     // this.tip.show(data1,this)
+debugger
 
-  };
-  private mousemove(data) {
-    debugger
-    // var x0 = this.xscale.invert(d3.mouse(this)[0]),
-    // i = bisectDate(data, x0, 1),
-    // d0 = data[i - 1],
-    // d1 = data[i],
-    // d = x0 - d0.date > d1.date - x0 ? d1 : d0;
-    // this.circle.attr("transform", "translate(" + this.xscale(d.date) + "," + this.yscale(d.value) + ")");
-    // this.circle.select(".tooltip-date").text(d.date);
-    // this.circle.select(".tooltip-likes").text((d.value);
-  }
+    }
   private drawLine2(myData) {
     var that = this;
     //    debugger
