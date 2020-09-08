@@ -16,7 +16,7 @@ export class LineChartComponent implements OnInit {
   // @Input() w:number;
   private width = 1745;
   private height = 250;
-  private margin = { top: 20, right: 50, bottom: 20, left: 50 };
+  private padding = { top: 20, right: 50, bottom: 20, left: 50 };
   private svg;
   private xscale;
   private yscale;
@@ -84,7 +84,7 @@ export class LineChartComponent implements OnInit {
         }))
         // d3.scaleTime()
         // .domain([new Date(2013, 0, 1), new Date(2013, 11, 31)])
-        .range([this.margin.left, this.width - this.margin.right]);
+        .range([this.padding.left, this.width - this.padding.right]);
 
     this.yscale = d3.scaleLinear()
       //.domain([0, 500])
@@ -98,7 +98,7 @@ export class LineChartComponent implements OnInit {
           });
         })
       ])
-      .range([this.height - this.margin.bottom, this.margin.top]);      //reversed
+      .range([this.height - this.padding.bottom, this.padding.top]);      //reversed
 
   };
 
@@ -108,9 +108,9 @@ export class LineChartComponent implements OnInit {
       // .style("color", "#e4e4e4")
       .attr("id", "x_axis")
       .classed("gridLine", true)
-      .attr("transform", "translate(0," + (this.height - this.margin.bottom) + ")")
+      .attr("transform", "translate(0," + (this.height - this.padding.bottom) + ")")
       .call(d3.axisBottom(this.xscale)
-        .tickSize((-this.height + 2 * this.margin.top))
+        .tickSize((-this.height + 2 * this.padding.top))
         .tickFormat("")
       );
 
@@ -119,9 +119,9 @@ export class LineChartComponent implements OnInit {
       // .style("color", "#e4e4e4")
       .attr("id", "y_axis")
       .classed("gridLine", true)
-      .attr("transform", "translate(" + (this.margin.left) + ",0)")
+      .attr("transform", "translate(" + (this.padding.left) + ",0)")
       .call(d3.axisLeft(this.yscale).ticks(5)
-        .tickSize((-this.width + 2 * this.margin.right))
+        .tickSize((-this.width + 2 * this.padding.right))
         .tickFormat("")
       );
   }
@@ -130,16 +130,16 @@ export class LineChartComponent implements OnInit {
     this.x_axis = d3.axisBottom()
       .scale(this.xscale)
 
-      .tickSize((-this.height + 2 * this.margin.top));
+      .tickSize((-this.height + 2 * this.padding.top));
 
     this.y_axis = d3.axisLeft()
-      .scale(this.yscale).tickSize((-this.width + 2 * this.margin.right));
+      .scale(this.yscale).tickSize((-this.width + 2 * this.padding.right));
     // Place the x axis on the chart
     this.svg.append("g")
       .attr("id", "x_axis")
       .style("font-size", "13")
       .classed("gridLine", true)
-      .attr("transform", "translate(0," + (this.height - this.margin.bottom) + ")")
+      .attr("transform", "translate(0," + (this.height - this.padding.bottom) + ")")
       .call(this.x_axis)
 
     // Place the y axis on the chart
@@ -147,7 +147,7 @@ export class LineChartComponent implements OnInit {
       .attr("id", "y_axis")
       .style("font-size", "13")
       .classed("gridLine", true)
-      .attr("transform", "translate(" + (this.margin.left) + ",0)")
+      .attr("transform", "translate(" + (this.padding.left) + ",0)")
       .call(this.y_axis.ticks(5))
 
   };
@@ -285,7 +285,7 @@ export class LineChartComponent implements OnInit {
     var currentWidth = parseInt(d3.select('#lineChart').style('width'))
     if (currentWidth < this.width) {
       // Update the X scale and Axis
-      this.xscale.range([this.margin.left, currentWidth - this.margin.right]);
+      this.xscale.range([this.padding.left, currentWidth - this.padding.right]);
       // Update the axis and text with the new scale
       this.svg.select('#x_axis')
         .call(this.x_axis);
