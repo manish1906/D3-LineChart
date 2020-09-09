@@ -13,18 +13,20 @@ import d3Tip from "d3-tip";
 export class LineChartComponent implements OnInit {
   @Input() lineData;
   // @Input() w:number;
-  private width = 1745;
-  private height = 250;
+  private svgWidth = 1745;
+  private svgHeight = 250;
   private padding = { top: 20, right: 50, bottom: 20, left: 70 };
+  private tooltipStyle = { padding: 4, margintop: -0, width: 150, height: 25 };
   private svg;
   private xscale;
   private yscale;
   private x_axis;
   private y_axis;
-
+  private valueline;
   private myColor;
   private circle;
   private tip;
+  private tooltip;
   private monthData = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
   constructor(private container: ElementRef) {
@@ -45,21 +47,39 @@ export class LineChartComponent implements OnInit {
     this.svg = d3.select("#lineChart")
       .append("svg")
       //  .attr("id", "chart")
-      .attr("width", this.width)
-      .attr("height", this.height);
+      .attr("width", this.svgWidth)
+      .attr("height", this.svgHeight);
+
+    this.tip = d3Tip()
+      .attr('class', 'chart-tooltip')
+      .offset([-10, 0])
+      .html(function (year, d) {
+        return "<span ><span >" + year + " : " + "</span><span >" + d.Awarded + "</span></span>";
+      })
+      .style("width", this.tooltipStyle.width + "px")
+      .style("height", this.tooltipStyle.height + "px")
+      .style("padding", this.tooltipStyle.padding + "px")
+      .style("margin-top", this.tooltipStyle.margintop + "px");
+    this.svg.call(this.tip);
+
+    // this.tooltip = d3.select("#lineChart").append("div")
+    // .classed("chart-tooltip", true)
+    // .style("display", 'none')
+    // .style("width",this.tooltipStyle.width+"px")
+    // .style("height",this.tooltipStyle.height+"px")
+    // .style("padding",this.tooltipStyle.padding+"px")
+    // .style("margin-top",this.tooltipStyle.margintop+"px");
 
   };
   private initScale(myData: any) {
-
     // A color scale: one color for each group
     this.myColor = d3.scaleOrdinal(d3.schemeCategory10);
-
     this.xscale =
       d3.scalePoint()
         .domain(this.monthData.map((d: any) => {              // This is what is written on the Axis: from January to December
           return d
         }))
-        .range([this.padding.left, this.width - this.padding.right]);
+        .range([this.padding.left, this.svgWidth - this.padding.right]);
 
     this.yscale = d3.scaleLinear()
       .domain([0,
@@ -70,7 +90,7 @@ export class LineChartComponent implements OnInit {
           });
         })
       ])
-      .range([this.height - this.padding.bottom, this.padding.top]);      //reversed
+      .range([this.svgHeight - this.padding.bottom, this.padding.top]);      //reversed
   };
 
   private drawGridLines() {
@@ -79,9 +99,9 @@ export class LineChartComponent implements OnInit {
       // .style("color", "#e4e4e4")
       .attr("id", "x_axis")
       .classed("gridLine", true)
-      .attr("transform", "translate(0," + (this.height - this.padding.bottom) + ")")
+      .attr("transform", "translate(0," + (this.svgHeight - this.padding.bottom) + ")")
       .call(d3.axisBottom(this.xscale)
-        .tickSize((-this.height + 2 * this.padding.top))
+        .tickSize((-this.svgHeight + 2 * this.padding.top))
         .tickFormat("")
       );
 
@@ -92,7 +112,7 @@ export class LineChartComponent implements OnInit {
       .classed("gridLine", true)
       .attr("transform", "translate(" + (this.padding.left) + ",0)")
       .call(d3.axisLeft(this.yscale).ticks(5)
-        .tickSize((-this.width + 2 * this.padding.right))
+        .tickSize((-this.svgWidth + 2 * this.padding.right))
         .tickFormat("")
       );
   }
@@ -100,16 +120,16 @@ export class LineChartComponent implements OnInit {
     // Define axes
     this.x_axis = d3.axisBottom()
       .scale(this.xscale)
-      .tickSize((-this.height + 2 * this.padding.top));
+      .tickSize((-this.svgHeight + 2 * this.padding.top));
 
     this.y_axis = d3.axisLeft()
-      .scale(this.yscale).tickSize((-this.width + 2 * this.padding.right));
+      .scale(this.yscale).tickSize((-this.svgWidth + 2 * this.padding.right));
     // Place the x axis on the chart
     this.svg.append("g")
       .attr("id", "x_axis")
       .style("font-size", "13")
       .classed("gridLine", true)
-      .attr("transform", "translate(0," + (this.height - this.padding.bottom) + ")")
+      .attr("transform", "translate(0," + (this.svgHeight - this.padding.bottom) + ")")
       .call(this.x_axis.ticks(6))
 
     // Place the y axis on the chart
@@ -126,12 +146,11 @@ export class LineChartComponent implements OnInit {
     var that = this;
     // debugger
     //1. line generator
-    var valueline = d3.line()
+    this.valueline = d3.line()
       .x(function (d, i) {
         return that.xscale(that.monthData[d.month - 1]);
       })
       .y(function (d) {
-
         return that.yscale(d.Awarded);
       });
     //1. Append the path, bind the data, and call the line generator
@@ -146,7 +165,7 @@ export class LineChartComponent implements OnInit {
       })
       .datum(d => d.MonthYear)
       .attr("d", function (d) {
-        return valueline(d);
+        return that.valueline(d);
       })
       .transition()
       .duration(1000)
@@ -174,49 +193,60 @@ export class LineChartComponent implements OnInit {
       .attr("cy", function (d) { return that.yscale(d.Awarded) })
       .attr("r", 5)
       .on("mousemove",
-        function (d, i, index) {
-          tip.show(i, this);
+        function (d, i) {
+
+          debugger
+          for (var j = 0; j < data.length; j++) {
+            var index = data[j].MonthYear.indexOf(i);
+            if (index > -1) {
+              that.tip.show(data[j].year, i, this)
+            }
+          }
+
+          // tip.show(i, this);
         }
       )
+      // .on("mouseover", function () {
+      //   d3.select('.chart-tooltip').style("display", null)
+      // })
       .on('mouseout', function (d) {
-        //  d3.select(".d3-tip").style("display", "none");
-        tip.hide();
+        // d3.select('.chart-tooltip').style("display", "none");
+        that.tip.hide();
       });
 
-    //Tooltip
-    var tip = d3Tip()
-      .attr('class', 'd3-tip')
-      .offset([-10, 0])
-      .html(function (d) {
-        //  debugger
-        return "<span style='background-color: white;' ><strong>Month:</strong> <span style='color:red'>" + that.monthData[d.month - 1] + "</span><strong>Value:</strong> <span style='color:red'>" + d.Awarded + "</span></span>";
-      })
-      .style("background-color", "white")
-      .style("border", "1px solid rgb(255,221,221)");
-    this.svg.call(tip);
+
+  };
+  private handleMouseMove(lineData) {
+    debugger
+    var that=this;
+    d3.select('.chart-tooltip')
+    // .style("left", event.pageX + 15 + "px")
+    // .style("top", event.pageY - 15 + "px")
+    // .text( data.Awarded )
+
   }
   private onResize(this) {
     var that = this;
     // get the current width of the div where the chart appear, and attribute it to Svg
     var currentWidth = parseInt(d3.select('#lineChart').style('width'))
-    if (currentWidth < this.width) {
+    if (currentWidth < this.svgWidth) {
       // Update the X scale and Axis
       this.xscale.range([this.padding.left, currentWidth - this.padding.right]);
       // Update the axis and text with the new scale
       this.svg.select('#x_axis')
         .call(this.x_axis);
 
-      var valueline = d3.line()
-        .x(function (d, i) {
-          return that.xscale(that.monthData[d.month - 1]);
-        })
-        .y(function (d) {
-          return that.yscale(d.Awarded);
-        });
+      // var valueline = d3.line()
+      //   .x(function (d, i) {
+      //     return that.xscale(that.monthData[d.month - 1]);
+      //   })
+      //   .y(function (d) {
+      //     return that.yscale(d.Awarded);
+      //   });
 
       this.svg.selectAll('.line')
         .attr("d", function (d) {
-          return valueline(d);
+          return that.valueline(d);
         });
 
       this.x_axis.ticks(Math.max(currentWidth / 75, 2));

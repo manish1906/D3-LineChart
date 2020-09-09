@@ -21,10 +21,10 @@
   position: absolute;
   color: black;
   text-align: center;
-  width: 150px;
-  height: 15px;
-  padding: 8px;
-  margin-top: -20px;
+  /* width: 150px; */
+  /* height: 15px; */
+  /* padding: 8px; */
+  /* margin-top: -20px; */
   font: 13px sans-serif;
   background: #fff;
   pointer-events: none;

@@ -67,6 +67,7 @@ export class AppComponent {
       {
         "month": 2,
         "Awarded": 1330913
+       // "Awarded": 2779
       },
       {
         "month": 3,
