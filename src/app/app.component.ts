@@ -7,7 +7,11 @@ import { Component, OnInit } from '@angular/core';
 })
 export class AppComponent {
   title = 'line-chart';
-  public w: number = 20;
+  // svgWidth:number;
+  lineChartWidth: number ;
+  lineChartHeight:number;
+  barChartWidth:number;
+  barChartHeight:number;
   public lineData = [{
     "year": 2001,
     "MonthYear": [
@@ -640,5 +644,10 @@ export class AppComponent {
     }
 
   ];
-
+  ngOnInit(){
+    this.lineChartWidth=1745;
+    this.lineChartHeight=250;
+    this.barChartWidth=656;
+    this.barChartHeight=250;
+}
 }

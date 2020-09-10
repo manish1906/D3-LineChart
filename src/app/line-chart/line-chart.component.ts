@@ -12,11 +12,12 @@ import d3Tip from "d3-tip";
 
 export class LineChartComponent implements OnInit {
   @Input() lineData;
-  // @Input() w:number;
-  private svgWidth = 1745;
-  private svgHeight = 250;
+  @Input() svgWidth:number;
+  @Input() svgHeight:number;
+ // private svgWidth = 1745;
+  // private svgHeight = 250;
   private padding = { top: 20, right: 50, bottom: 20, left: 70 };
-  private tooltipStyle = { padding: 4, margintop: -0, width: 150, height: 25 };
+  private tooltipStyle = { padding: 8, margintop: -20, width: 100, height: 20 };
   private svg;
   private xscale;
   private yscale;
@@ -33,7 +34,7 @@ export class LineChartComponent implements OnInit {
   }
 
   ngOnInit(): void {
-
+    // console.log(this.width)
     this.initSvg();
     this.initScale(this.lineData);
     //  this.drawGridLines();
@@ -50,25 +51,14 @@ export class LineChartComponent implements OnInit {
       .attr("width", this.svgWidth)
       .attr("height", this.svgHeight);
 
-    this.tip = d3Tip()
-      .attr('class', 'chart-tooltip')
-      .offset([-10, 0])
-      .html(function (year, d) {
-        return "<span ><span >" + year + " : " + "</span><span >" + d.Awarded + "</span></span>";
-      })
+
+    this.tooltip = d3.select("#lineChart").append("div")
+      .classed("lineChart-tooltip", true)
+      .style("display", 'none')
       .style("width", this.tooltipStyle.width + "px")
       .style("height", this.tooltipStyle.height + "px")
       .style("padding", this.tooltipStyle.padding + "px")
       .style("margin-top", this.tooltipStyle.margintop + "px");
-    this.svg.call(this.tip);
-
-    // this.tooltip = d3.select("#lineChart").append("div")
-    // .classed("chart-tooltip", true)
-    // .style("display", 'none')
-    // .style("width",this.tooltipStyle.width+"px")
-    // .style("height",this.tooltipStyle.height+"px")
-    // .style("padding",this.tooltipStyle.padding+"px")
-    // .style("margin-top",this.tooltipStyle.margintop+"px");
 
   };
   private initScale(myData: any) {
@@ -130,7 +120,7 @@ export class LineChartComponent implements OnInit {
       .style("font-size", "13")
       .classed("gridLine", true)
       .attr("transform", "translate(0," + (this.svgHeight - this.padding.bottom) + ")")
-      .call(this.x_axis.ticks(6))
+      .call(this.x_axis)
 
     // Place the y axis on the chart
     this.svg.append("g")
@@ -194,67 +184,77 @@ export class LineChartComponent implements OnInit {
       .attr("r", 5)
       .on("mousemove",
         function (d, i) {
-
-          debugger
           for (var j = 0; j < data.length; j++) {
             var index = data[j].MonthYear.indexOf(i);
             if (index > -1) {
-              that.tip.show(data[j].year, i, this)
+              that.handleMouseMove(event, data[j].year, i);
             }
           }
-
-          // tip.show(i, this);
         }
       )
-      // .on("mouseover", function () {
-      //   d3.select('.chart-tooltip').style("display", null)
-      // })
+      .on("mouseover", function () {
+        d3.select('.lineChart-tooltip').style("display", null)
+      })
       .on('mouseout', function (d) {
-        // d3.select('.chart-tooltip').style("display", "none");
-        that.tip.hide();
+        d3.select('.lineChart-tooltip').style("display", "none");
+        // that.tip.hide();
       });
 
 
   };
-  private handleMouseMove(lineData) {
-    debugger
-    var that=this;
-    d3.select('.chart-tooltip')
-    // .style("left", event.pageX + 15 + "px")
-    // .style("top", event.pageY - 15 + "px")
-    // .text( data.Awarded )
+  private handleMouseMove(event, year, data) {
+    //  console.log("x:"+event.pageX+"y:"+event.pageY)
+    var that = this;
+    var left = event.pageX + 15;
+    var top = event.pageY - 15;
+    // console.log(window.innerWidth+"left"+left)
+    if (left > that.svgWidth - that.padding.right || left > window.innerWidth - that.padding.right) {
+      left = left - that.tooltipStyle.width;
+      top = top - 10;
+
+
+    }
+    d3.select('.lineChart-tooltip')
+      .style("left", left + "px")
+      .style("top", top + "px")
+      .text(year + " : " + data.Awarded)
 
   }
   private onResize(this) {
     var that = this;
+    // console.log(window.innerWidth)
     // get the current width of the div where the chart appear, and attribute it to Svg
     var currentWidth = parseInt(d3.select('#lineChart').style('width'))
+
     if (currentWidth < this.svgWidth) {
       // Update the X scale and Axis
       this.xscale.range([this.padding.left, currentWidth - this.padding.right]);
+      this.y_axis.tickSize((-currentWidth + 2 * this.padding.right))
       // Update the axis and text with the new scale
       this.svg.select('#x_axis')
         .call(this.x_axis);
-
-      // var valueline = d3.line()
-      //   .x(function (d, i) {
-      //     return that.xscale(that.monthData[d.month - 1]);
-      //   })
-      //   .y(function (d) {
-      //     return that.yscale(d.Awarded);
-      //   });
+        this.svg.select('#y_axis')
+        .call(this.y_axis);
 
       this.svg.selectAll('.line')
         .attr("d", function (d) {
           return that.valueline(d);
         });
 
-      this.x_axis.ticks(Math.max(currentWidth / 75, 2));
+      // Add the last information needed for the circles: their X position
+      this.svg.selectAll('.circle')
+        .attr("cx", function (d) { return that.xscale(that.monthData[d.month - 1]) })
+    };
+    if (currentWidth<900)
+    {
+      this.x_axis.tickValues(that.xscale.domain().filter(function (d, i) { return !(i % 2); }));
     }
-    // // Add the last information needed for the circles: their X position
-    this.svg.selectAll('.circle')
-      .attr("cx", function (d) { return that.xscale(that.monthData[d.month - 1]) })
-  };
+    if (currentWidth>900)
+    {
+      this.x_axis.tickValues(that.xscale.domain().filter(function (d, i) { return that.monthData.length}));
+    }
+  }
 
 
-}
+
+};

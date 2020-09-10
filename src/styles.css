@@ -17,7 +17,21 @@
   /* border: 1px solid black; */
 }
 
-.chart-tooltip{
+.barChart-tooltip{
+  position: absolute;
+  color: black;
+  text-align: center;
+  /* width: 150px; */
+  /* height: 15px; */
+  /* padding: 8px; */
+  /* margin-top: -20px; */
+  font: 13px sans-serif;
+  background: #fff;
+  pointer-events: none;
+  border: 1px solid #fdd;
+  opacity:0.9;
+}
+.lineChart-tooltip{
   position: absolute;
   color: black;
   text-align: center;
