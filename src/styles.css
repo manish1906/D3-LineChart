@@ -14,7 +14,7 @@
 .bar
 {
   opacity: 0.6;
-  /* border: 1px solid black; */
+  border: 1px solid black;
 }
 
 .barChart-tooltip{

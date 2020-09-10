@@ -8,10 +8,13 @@ import { Component, OnInit } from '@angular/core';
 export class AppComponent {
   title = 'line-chart';
   // svgWidth:number;
-  lineChartWidth: number ;
-  lineChartHeight:number;
-  barChartWidth:number;
-  barChartHeight:number;
+  lineChartWidth: number;
+  lineChartHeight: number;
+  barChartWidth: number;
+  barChartHeight: number;
+  lineChartId:string;
+  barChartId1:string;
+  barChartId2:string;
   public lineData = [{
     "year": 2001,
     "MonthYear": [
@@ -71,7 +74,7 @@ export class AppComponent {
       {
         "month": 2,
         "Awarded": 1330913
-       // "Awarded": 2779
+        // "Awarded": 2779
       },
       {
         "month": 3,
@@ -596,30 +599,30 @@ export class AppComponent {
   ];
   public barData1 = [
     {
-    "month": 3,
-    "MarketSaving": 46532876,
-    "SingleSource": 11268487,
-    "LowBidNotAccepted": 1369455
-  },
-  {
-    "month": 4,
-    "MarketSaving": 42615189,
-    "SingleSource": 1159898,
-    "LowBidNotAccepted": 3389174
-  },
-  {
-    "month": 5,
-    "MarketSaving": 50329178,
-    "SingleSource": 1178053,
-    "LowBidNotAccepted": 2030525
-  },
-  {
-    "month": 8,
-    "MarketSaving": 40668684,
-    "SingleSource": 140543,
-    "LowBidNotAccepted": 1948857
-  }
-  ];
+    "month":3,
+    "MarketSaving":46532876,
+    "SingleSource":1268487,
+    "LowBidNotAccepted":1369455
+    },
+    {
+    "month":4,
+    "MarketSaving":42615189,
+    "SingleSource":159898,
+    "LowBidNotAccepted":3389174
+    },
+    {
+    "month":5,
+    "MarketSaving":50329178,
+    "SingleSource":178053,
+    "LowBidNotAccepted":2030525
+    },
+    {
+    "month":8,
+    "MarketSaving":40668684,
+    "SingleSource":40543,
+    "LowBidNotAccepted":1948857
+    }
+    ];
   public barData2 = [
 
     {
@@ -644,10 +647,13 @@ export class AppComponent {
     }
 
   ];
-  ngOnInit(){
-    this.lineChartWidth=1745;
-    this.lineChartHeight=250;
-    this.barChartWidth=656;
-    this.barChartHeight=250;
-}
+  ngOnInit() {
+    this.lineChartWidth = 1745;
+    this.lineChartHeight = 250;
+    this.barChartWidth = 656;
+    this.barChartHeight = 250;
+    this.lineChartId="lineChart1"
+    this.barChartId1="barChart1";
+   this.barChartId2="barChart2";
+  }
 }

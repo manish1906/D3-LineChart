@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, ElementRef } from '@angular/core';
+import { Component, OnInit, Input, ElementRef, AfterViewInit } from '@angular/core';
 import * as d3 from 'd3';
 import d3Tip from "d3-tip";
 @Component({
@@ -10,10 +10,11 @@ import d3Tip from "d3-tip";
   }
 })
 
-export class LineChartComponent implements OnInit {
+export class LineChartComponent implements AfterViewInit {
   @Input() lineData;
   @Input() svgWidth:number;
   @Input() svgHeight:number;
+  @Input() id:string;
  // private svgWidth = 1745;
   // private svgHeight = 250;
   private padding = { top: 20, right: 50, bottom: 20, left: 70 };
@@ -27,14 +28,17 @@ export class LineChartComponent implements OnInit {
   private myColor;
   private circle;
   private tip;
+  private last1;
   private tooltip;
   private monthData = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
   constructor(private container: ElementRef) {
   }
 
-  ngOnInit(): void {
+  ngAfterViewInit(): void {
     // console.log(this.width)
+    var id=this.id
+    this.last1=id.slice(-1);
     this.initSvg();
     this.initScale(this.lineData);
     //  this.drawGridLines();
@@ -45,14 +49,15 @@ export class LineChartComponent implements OnInit {
   };
   private initSvg() {
 
-    this.svg = d3.select("#lineChart")
+    this.svg = d3.select("#"+this.id)
       .append("svg")
       //  .attr("id", "chart")
       .attr("width", this.svgWidth)
       .attr("height", this.svgHeight);
 
 
-    this.tooltip = d3.select("#lineChart").append("div")
+    this.tooltip = d3.select("#"+this.id).append("div")
+    .attr("id","lineChartTooltip"+this.last1)
       .classed("lineChart-tooltip", true)
       .style("display", 'none')
       .style("width", this.tooltipStyle.width + "px")
@@ -166,6 +171,7 @@ export class LineChartComponent implements OnInit {
       .data(data)
       .enter()
       .append('g')
+      .attr("id","circleGroup"+this.last1)
       .style("fill", function (d) {
         return that.myColor(d.year)
       })
@@ -192,11 +198,12 @@ export class LineChartComponent implements OnInit {
           }
         }
       )
-      .on("mouseover", function () {
-        d3.select('.lineChart-tooltip').style("display", null)
+      .on("mouseover", function (event) {
+        console.log(event.target.parentNode.id.slice(-1))
+        d3.select('#lineChartTooltip'+event.target.parentNode.id.slice(-1)).style("display", null)
       })
-      .on('mouseout', function (d) {
-        d3.select('.lineChart-tooltip').style("display", "none");
+      .on('mouseout', function (event) {
+        d3.select('#lineChartTooltip'+event.target.parentNode.id.slice(-1)).style("display", "none");
         // that.tip.hide();
       });
 
@@ -214,7 +221,7 @@ export class LineChartComponent implements OnInit {
 
 
     }
-    d3.select('.lineChart-tooltip')
+    d3.select('#lineChartTooltip'+event.target.parentNode.id.slice(-1))
       .style("left", left + "px")
       .style("top", top + "px")
       .text(year + " : " + data.Awarded)
@@ -224,7 +231,7 @@ export class LineChartComponent implements OnInit {
     var that = this;
     // console.log(window.innerWidth)
     // get the current width of the div where the chart appear, and attribute it to Svg
-    var currentWidth = parseInt(d3.select('#lineChart').style('width'))
+    var currentWidth = parseInt(d3.select("#"+that.id).style('width'))
 
     if (currentWidth < this.svgWidth) {
       // Update the X scale and Axis

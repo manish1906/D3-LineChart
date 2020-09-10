@@ -1,6 +1,7 @@
-import { Component, OnInit, Input, ElementRef } from '@angular/core';
+import { Component, OnInit, Input, ElementRef, AfterViewInit } from '@angular/core';
 import * as d3 from 'd3';
 import d3Tip from "d3-tip";
+import { combineLatest } from 'rxjs';
 
 @Component({
   selector: 'app-bar-chart',
@@ -10,10 +11,11 @@ import d3Tip from "d3-tip";
     '(window:resize)': 'onResize(this)'
   }
 })
-export class BarChartComponent implements OnInit {
+export class BarChartComponent implements AfterViewInit {
   @Input() barData;
   @Input() svgWidth: number;
   @Input() svgHeight: number;
+  @Input() id: string;
   // private svgWidth = 656;
   // private svgHeight = 250;
   private padding = { top: 20, right: 50, bottom: 20, left: 80 };
@@ -27,15 +29,19 @@ export class BarChartComponent implements OnInit {
   //private barData;
   private stack;
   private tooltip;
+  private last1;
   public color = ["green", "red", "blue"];
   private monthData = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
   constructor(private container: ElementRef) {
 
   }
 
-  ngOnInit(): void {
-    // console.log($index)
+  ngAfterViewInit(): void {
+    var id = this.id
+    this.last1 = id.slice(-1);
+    console.log(this.last1)
     this.initSvg();
+    this.dataManipulation(this.barData);
     this.initScale(this.barData);
     // this.drawGridLines();
     this.drawAxis();
@@ -43,14 +49,43 @@ export class BarChartComponent implements OnInit {
     this.onResize();
 
   };
+  private dataManipulation(data) {
+
+    var date = new Date();
+    var month = date.getMonth() - 6;
+    var lastMonth = month + 6;
+    var m = this.monthData[month];
+    let result = [];
+    let test = [];
+    for (var i = month; i < lastMonth; i++) {
+      result.push(this.monthData[month])
+      month++;
+    }
+
+   var key= Object.keys(data[0]).filter(function (d) { return d !== "month" });
+    result.forEach((m, i) => {
+      const monthIndex = this.monthData.indexOf(m) + 1;
+      const item = data.find(item => item.month === monthIndex);
+      if (item) {
+        debugger
+        test.push(item);
+      } else {
+        debugger
+        test.push({ month: monthIndex, });
+      }
+      console.log(test)
+    })
+  }
   private initSvg() {
-    this.svg = d3.select("#barChart")
+
+    this.svg = d3.selectAll("#" + this.id)
       .append("svg")
       .attr("width", this.svgWidth)
       .attr("height", this.svgHeight);
 
-    this.tooltip = d3.select("#barChart").append("div")
-      .classed("barChart-tooltip", true)
+    this.tooltip = d3.select("#" + this.id).append("div")
+      .attr("id", "tooltip" + this.last1)
+      .attr("class", "barChart-tooltip")
       .style("display", 'none')
       .style("width", this.tooltipStyle.width + "px")
       .style("height", this.tooltipStyle.height + "px")
@@ -60,12 +95,11 @@ export class BarChartComponent implements OnInit {
   };
   private initScale(myData: any) {
     //var that = this;
-    // debugger
     var group = Object.keys(myData[0]).filter(function (d) { return d !== "month" });
     console.log(group);
     this.stack = d3.stack().keys(group);
     this.barData = this.stack(myData);
-    console.log(this.barData)
+    console.log(this.barData);
     this.xscale =
       d3.scalePoint()
         .domain(                                                     // This is what is written on the Axis: from January to December
@@ -149,6 +183,7 @@ export class BarChartComponent implements OnInit {
       .style("fill", function (d, i) {
         return that.color[i]
       })
+      .attr("id", "rectGroup" + this.last1)
       .selectAll("myBars")
       .data(function (d) {
         return d
@@ -156,6 +191,7 @@ export class BarChartComponent implements OnInit {
       .enter()
       .append("rect")
       .attr("class", "bar")
+      .attr("id", "rect" + this.id)
       .attr('x', function (d) {
         return that.xscale(that.monthData[d.data.month - 1]) - 15;///-15
       })
@@ -165,11 +201,13 @@ export class BarChartComponent implements OnInit {
       }
       )
       .attr('width', "30")
-      .on("mouseover", function () {
-        d3.select('.barChart-tooltip').style("display", null)
+      .on("mouseover", function (event) {
+        console.log(that.last1)
+        d3.select("#tooltip" + event.target.parentNode.id.slice(-1)).style("display", null)
       })
-      .on("mouseout", function () {
-        d3.select('.barChart-tooltip').style("display", "none");
+      .on("mouseout", function (event) {
+        console.log(that.last1)
+        d3.select("#tooltip" + event.target.parentNode.id.slice(-1)).style("display", "none");
       })
       .on("mousemove",
         function (evnt, d) {
@@ -178,8 +216,10 @@ export class BarChartComponent implements OnInit {
       );
   };
   private handleMouseMove(event, d) {
+    // debugger
     // console.log("x:"+event.pageX+"y:"+event.pageY)
     var name = Object.keys(d.data).find(key => d.data[key] === d[1] - d[0]);
+
     var that = this;
     var left = event.pageX + 15;
     var top = event.pageY - 15;
@@ -189,15 +229,17 @@ export class BarChartComponent implements OnInit {
       left = left - that.tooltipStyle.width;
       top = top - 10;
     }
-    d3.select('.barChart-tooltip')
+    d3.select("#tooltip" + event.target.parentNode.id.slice(-1))
       .style("left", left + "px")
       .style("top", top + "px")
       .text(name + ":" + (d[1] - d[0]));
   }
   private onResize(this) {
     var that = this;
+
     // get the current width of the div where the chart appear, and attribute it to Svg
-    var currentWidth = parseInt(d3.select('#barChart').style('width'))
+    var currentWidth = parseInt(d3.select("#" + this.id).style('width'))
+
     if (currentWidth < this.svgWidth) {
       this.xscale.range([this.padding.left, currentWidth - this.padding.right]);
       this.y_axis.tickSize((-currentWidth + 2 * this.padding.right));
