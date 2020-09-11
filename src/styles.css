@@ -14,9 +14,18 @@
 .bar
 {
   opacity: 0.6;
-  border: 1px solid black;
+  /* border: 1px solid black; */
 }
-
+.circle
+{
+  opacity: 0.7;
+  /* border: 1px solid black; */
+}
+.line
+{
+  opacity: 0.7;
+  /* border: 1px solid black; */
+}
 .barChart-tooltip{
   position: absolute;
   color: black;
@@ -44,4 +53,13 @@
   pointer-events: none;
   border: 1px solid #fdd;
   opacity:0.9;
+}
+.leftbox {
+  float:left;
+
+}
+
+.rightbox{
+  float:right;
+ 
 }

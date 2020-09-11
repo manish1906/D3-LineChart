@@ -19,7 +19,7 @@ export class BarChartComponent implements AfterViewInit {
   // private svgWidth = 656;
   // private svgHeight = 250;
   private padding = { top: 20, right: 50, bottom: 20, left: 80 };
-  private tooltipStyle = { padding: 8, margintop: -20, width: 150, height: 15 };
+  private tooltipStyle = { padding: 8, margintop: -20, width: 170, height: 15 };
   private svg;
 
   private xscale;
@@ -29,7 +29,8 @@ export class BarChartComponent implements AfterViewInit {
   //private barData;
   private stack;
   private tooltip;
-  private last1;
+  public last1;
+  private key;
   public color = ["green", "red", "blue"];
   private monthData = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
   constructor(private container: ElementRef) {
@@ -37,51 +38,84 @@ export class BarChartComponent implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    var id = this.id
+    var id = this.id;
     this.last1 = id.slice(-1);
     console.log(this.last1)
     this.initSvg();
     this.dataManipulation(this.barData);
-    this.initScale(this.barData);
+    //  this.initScale(this.barData);
     // this.drawGridLines();
     this.drawAxis();
     this.drawBar();
+    this.colorInfo();
     this.onResize();
 
   };
   private dataManipulation(data) {
-
     var date = new Date();
     var month = date.getMonth() - 6;
     var lastMonth = month + 6;
     var m = this.monthData[month];
-    let result = [];
-    let test = [];
+    let lastSixMonth = [];
+    let finalData = [];
+let test=[];
     for (var i = month; i < lastMonth; i++) {
-      result.push(this.monthData[month])
+      lastSixMonth.push(this.monthData[month])
       month++;
-    }
+    };
 
-   var key= Object.keys(data[0]).filter(function (d) { return d !== "month" });
-    result.forEach((m, i) => {
+    //If not empty arrray
+    if(data.length!=0){
+    var key = Object.keys(data[0]).filter(function (d) { return d !== "month" });
+  //  console.log(key)
+
+    lastSixMonth.forEach((m, i) => {
       const monthIndex = this.monthData.indexOf(m) + 1;
       const item = data.find(item => item.month === monthIndex);
       if (item) {
-        debugger
-        test.push(item);
+        finalData.push(item);
+      //  test.push(item)
       } else {
-        debugger
-        test.push({ month: monthIndex, });
+
+        //push value 0 based on keys
+        // var mainObj: any = {};
+        // var myObj: any = {};
+        // for (i = 0; i < key.length; i++) {
+        //   mainObj[i] = key[i];
+        //   Object.assign(myObj, mainObj);
+        //   console.log(myObj,mainObj);
+        //   debugger
+        // }
+        //test.push({month:monthIndex})
+
+        //static logic
+        if(key.length>2)
+        finalData.push({ month: monthIndex,MarketSaving:0,SingleSource:0,LowBidNotAccepted:0 });
+        else
+        {
+          finalData.push({ month: monthIndex,AwarderVolume:0,MarketSaving:0 })
+        }
       }
-      console.log(test)
     })
   }
-  private initSvg() {
 
-    this.svg = d3.selectAll("#" + this.id)
+  //if empty array then put the logic
+  else
+  {
+    lastSixMonth.forEach((m, i) => {
+      const monthIndex = this.monthData.indexOf(m) + 1;
+    })
+  }
+  //  console.log(test)
+    this.initScale(finalData);
+  }
+  private initSvg() {
+    this.svg = d3.select("#" + this.id)
       .append("svg")
       .attr("width", this.svgWidth)
-      .attr("height", this.svgHeight);
+      .attr("height", this.svgHeight)
+      .append("g")
+      .attr("transform", "translate(0,0)");;
 
     this.tooltip = d3.select("#" + this.id).append("div")
       .attr("id", "tooltip" + this.last1)
@@ -94,12 +128,14 @@ export class BarChartComponent implements AfterViewInit {
 
   };
   private initScale(myData: any) {
+
     //var that = this;
-    var group = Object.keys(myData[0]).filter(function (d) { return d !== "month" });
-    console.log(group);
-    this.stack = d3.stack().keys(group);
+    this.key = Object.keys(myData[0]).filter(function (d) { return d !== "month" });
+   // console.log(group);
+    this.stack = d3.stack().keys(this.key);
     this.barData = this.stack(myData);
-    console.log(this.barData);
+
+   // console.log(this.barData);
     this.xscale =
       d3.scalePoint()
         .domain(                                                     // This is what is written on the Axis: from January to December
@@ -108,7 +144,7 @@ export class BarChartComponent implements AfterViewInit {
           })
         )
         .range([this.padding.left, this.svgWidth - this.padding.right])
-        .padding(0.1);
+        .padding(0.2);
 
     this.yscale = d3.scaleLinear()
       .domain([0,
@@ -126,30 +162,6 @@ export class BarChartComponent implements AfterViewInit {
     }))
   };
 
-  private drawGridLines() {
-
-    // add the x gridlines
-    this.svg.append("g")
-      // .style("color", "#e4e4e4")
-      .attr("id", "x_axis")
-      .classed("gridLine", true)
-      .attr("transform", "translate(0," + (this.svgHeight - this.padding.bottom) + ")")
-      .call(d3.axisBottom(this.xscale)
-        .tickSize((-this.svgHeight + 2 * this.padding.top))
-        .tickFormat("")
-      );
-
-    // add the y gridlines
-    this.svg.append("g")
-      // .style("color", "#e4e4e4")
-      .attr("id", "y_axis")
-      .classed("gridLine", true)
-      .attr("transform", "translate(" + (this.padding.left) + ",0)")
-      .call(d3.axisLeft(this.yscale).ticks(5)
-        .tickSize((-this.svgWidth + 2 * this.padding.right))
-        .tickFormat("")
-      );
-  }
   private drawAxis() {
     // Define axes
     this.x_axis = d3.axisBottom()
@@ -158,7 +170,7 @@ export class BarChartComponent implements AfterViewInit {
 
     this.y_axis = d3.axisLeft()
       .scale(this.yscale)
-      .tickSize((-this.svgWidth + 2 * this.padding.right));
+      .tickSize((-this.svgWidth +  this.padding.right+this.padding.left));
     // Place the x axis on the chart
     this.svg.append("g")
       .attr("id", "x_axis")
@@ -202,11 +214,11 @@ export class BarChartComponent implements AfterViewInit {
       )
       .attr('width', "30")
       .on("mouseover", function (event) {
-        console.log(that.last1)
+        // console.log(that.last1)
         d3.select("#tooltip" + event.target.parentNode.id.slice(-1)).style("display", null)
       })
       .on("mouseout", function (event) {
-        console.log(that.last1)
+        // console.log(that.last1)
         d3.select("#tooltip" + event.target.parentNode.id.slice(-1)).style("display", "none");
       })
       .on("mousemove",
@@ -214,6 +226,17 @@ export class BarChartComponent implements AfterViewInit {
           that.handleMouseMove(event, d)
         }
       );
+
+      //for svg border
+      this.svg.append("rect")
+      .style("stroke-width", "2")
+      .style("fill", "none")
+      .style("stroke", "black")
+      .attr("class","svgborder")
+      .attr("x", this.padding.left)
+      .attr("y", this.padding.top)
+      .attr("width", this.svgWidth - this.padding.right - this.padding.left)
+      .attr("height", this.svgHeight - this.padding.bottom - this.padding.top);
   };
   private handleMouseMove(event, d) {
     // debugger
@@ -225,8 +248,8 @@ export class BarChartComponent implements AfterViewInit {
     var top = event.pageY - 15;
     // console.log(window.innerWidth + "left" + left)
 
-    if (left > that.svgWidth - this.padding.right || left > window.innerWidth - that.padding.right) {
-      left = left - that.tooltipStyle.width;
+    if (left > that.svgWidth - this.padding.right-this.padding.left || left > window.innerWidth - that.padding.right) {
+      left = left - that.tooltipStyle.width-this.padding.right;
       top = top - 10;
     }
     d3.select("#tooltip" + event.target.parentNode.id.slice(-1))
@@ -234,22 +257,61 @@ export class BarChartComponent implements AfterViewInit {
       .style("top", top + "px")
       .text(name + ":" + (d[1] - d[0]));
   }
+  private colorInfo(){
+   var that = this;
+
+   var legend = d3.select("#" + this.id).append("svg")
+   .attr("width", 170)
+   .attr("height", this.svgHeight)
+   .selectAll(".info1")
+   .data(this.barData)
+   .enter()
+   .append('g')
+
+
+ legend.append('rect')
+   .attr('class', 'bar')
+   .attr('x', 10 )
+   .attr('y', function (d, i) {
+     return (i * 20)+5;
+   })
+   .attr('width', 10)
+   .attr('height', 10)
+   .style('fill', function (d, i) {
+
+     return that.color[i];
+   });
+
+ legend.append('text')
+   .attr('x', 25)
+   .attr('y', function (d, i) {
+     return (i * 20) + 15;
+   })
+   .text(function (d) {
+     return d.key;
+   });
+
+
+
+  }
   private onResize(this) {
     var that = this;
-
     // get the current width of the div where the chart appear, and attribute it to Svg
     var currentWidth = parseInt(d3.select("#" + this.id).style('width'))
 
     if (currentWidth < this.svgWidth) {
       this.xscale.range([this.padding.left, currentWidth - this.padding.right]);
-      this.y_axis.tickSize((-currentWidth + 2 * this.padding.right));
+      this.y_axis.tickSize((-currentWidth +  this.padding.right+ this.padding.left));
 
       this.svg.select('#x_axis')
         .call(this.x_axis);
       this.svg.select('#y_axis')
         .call(this.y_axis);
       this.svg.selectAll('.bar')
-        .attr("x", function (d) { return that.xscale(that.monthData[d.data.month - 1]) - 15 })
+        .attr("x", function (d) { return that.xscale(that.monthData[d.data.month - 1]) - 15 });
+      this.svg.selectAll('.svgborder')
+      .attr("width", currentWidth- this.padding.right - this.padding.left);
+
     };
   }
 }
