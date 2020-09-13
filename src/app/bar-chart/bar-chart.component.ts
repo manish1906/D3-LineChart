@@ -19,7 +19,7 @@ export class BarChartComponent implements AfterViewInit {
   // private svgWidth = 656;
   // private svgHeight = 250;
   private padding = { top: 20, right: 50, bottom: 20, left: 80 };
-  private tooltipStyle = { padding: 8, margintop: -20, width: 170, height: 15 };
+  private tooltipStyle = { padding: 10, margintop: 0, width: 170, height: 15 };
   private svg;
 
   private xscale;
@@ -52,62 +52,62 @@ export class BarChartComponent implements AfterViewInit {
 
   };
   private dataManipulation(data) {
+    debugger
     var date = new Date();
     var month = date.getMonth() - 6;
     var lastMonth = month + 6;
     var m = this.monthData[month];
     let lastSixMonth = [];
     let finalData = [];
-let test=[];
+    let test = [];
     for (var i = month; i < lastMonth; i++) {
       lastSixMonth.push(this.monthData[month])
       month++;
     };
 
     //If not empty arrray
-    if(data.length!=0){
-    var key = Object.keys(data[0]).filter(function (d) { return d !== "month" });
-  //  console.log(key)
+    if (data.length < 6) {
+      var key = Object.keys(data[0]).filter(function (d) { return d !== "month" });
+      lastSixMonth.forEach((m, i) => {
+        const monthIndex = this.monthData.indexOf(m) + 1;
+        const item = data.find(item => item.month === monthIndex);
 
-    lastSixMonth.forEach((m, i) => {
-      const monthIndex = this.monthData.indexOf(m) + 1;
-      const item = data.find(item => item.month === monthIndex);
-      if (item) {
-        finalData.push(item);
-      //  test.push(item)
-      } else {
+        if (item) {
 
-        //push value 0 based on keys
-        // var mainObj: any = {};
-        // var myObj: any = {};
-        // for (i = 0; i < key.length; i++) {
-        //   mainObj[i] = key[i];
-        //   Object.assign(myObj, mainObj);
-        //   console.log(myObj,mainObj);
-        //   debugger
-        // }
-        //test.push({month:monthIndex})
+          finalData.push(item);
+          //  test.push(item)
+        } else {
 
-        //static logic
-        if(key.length>2)
-        finalData.push({ month: monthIndex,MarketSaving:0,SingleSource:0,LowBidNotAccepted:0 });
-        else
-        {
-          finalData.push({ month: monthIndex,AwarderVolume:0,MarketSaving:0 })
+          //push value 0 based on keys
+          // var mainObj: any = {};
+          // var myObj: any = {};
+          // for (i = 0; i < key.length; i++) {
+          //   mainObj[i] = key[i];
+          //   Object.assign(myObj, mainObj);
+          //   console.log(myObj,mainObj);
+          //   debugger
+          // }
+          //test.push({month:monthIndex})
+
+          //static logic
+          if (key.length > 2)
+            finalData.push({ month: monthIndex, MarketSaving: 0, SingleSource: 0, LowBidNotAccepted: 0 });
+          else {
+            finalData.push({ month: monthIndex, AwarderVolume: 0, MarketSaving: 0 })
+          }
         }
-      }
-    })
-  }
 
-  //if empty array then put the logic
-  else
-  {
-    lastSixMonth.forEach((m, i) => {
-      const monthIndex = this.monthData.indexOf(m) + 1;
-    })
-  }
-  //  console.log(test)
-    this.initScale(finalData);
+      })
+      this.initScale(finalData);
+    }
+
+    //if empty array then put the logic
+    else {
+      this.initScale(data);
+    }
+    //  console.log(test)
+
+
   }
   private initSvg() {
     this.svg = d3.select("#" + this.id)
@@ -128,14 +128,14 @@ let test=[];
 
   };
   private initScale(myData: any) {
-
+debugger
     //var that = this;
     this.key = Object.keys(myData[0]).filter(function (d) { return d !== "month" });
-   // console.log(group);
+    // console.log(group);
     this.stack = d3.stack().keys(this.key);
     this.barData = this.stack(myData);
 
-   // console.log(this.barData);
+    // console.log(this.barData);
     this.xscale =
       d3.scalePoint()
         .domain(                                                     // This is what is written on the Axis: from January to December
@@ -146,13 +146,20 @@ let test=[];
         .range([this.padding.left, this.svgWidth - this.padding.right])
         .padding(0.2);
 
+    // For y axis maximum value
+    var max= d3.max(this.barData, function (c) {
+      debugger
+      return d3.max(c, function (v) {
+        debugger
+        return v[1];
+      });
+    });
+    if(max==0){
+      var max=1;
+    }
+
     this.yscale = d3.scaleLinear()
-      .domain([0,
-        d3.max(this.barData, function (c) {
-          return d3.max(c, function (v) {
-            return v[1];
-          });
-        })
+      .domain([0,max
       ])
       .range([this.svgHeight - this.padding.bottom, this.padding.top]);      //reversed
     console.log("y" + d3.max(this.barData, function (c) {
@@ -170,7 +177,7 @@ let test=[];
 
     this.y_axis = d3.axisLeft()
       .scale(this.yscale)
-      .tickSize((-this.svgWidth +  this.padding.right+this.padding.left));
+      .tickSize((-this.svgWidth + this.padding.right + this.padding.left));
     // Place the x axis on the chart
     this.svg.append("g")
       .attr("id", "x_axis")
@@ -205,7 +212,7 @@ let test=[];
       .attr("class", "bar")
       .attr("id", "rect" + this.id)
       .attr('x', function (d) {
-        return that.xscale(that.monthData[d.data.month - 1]) - 15;///-15
+        return that.xscale(that.monthData[d.data.month - 1]) - 17;///-15
       })
       .attr('y', function (d) { return that.yscale(d[1]) })
       .attr('height', function (d) {
@@ -227,12 +234,12 @@ let test=[];
         }
       );
 
-      //for svg border
-      this.svg.append("rect")
+    //for svg border
+    this.svg.append("rect")
       .style("stroke-width", "2")
       .style("fill", "none")
       .style("stroke", "black")
-      .attr("class","svgborder")
+      .attr("class", "svgborder")
       .attr("x", this.padding.left)
       .attr("y", this.padding.top)
       .attr("width", this.svgWidth - this.padding.right - this.padding.left)
@@ -248,8 +255,8 @@ let test=[];
     var top = event.pageY - 15;
     // console.log(window.innerWidth + "left" + left)
 
-    if (left > that.svgWidth - this.padding.right-this.padding.left || left > window.innerWidth - that.padding.right) {
-      left = left - that.tooltipStyle.width-this.padding.right;
+    if (left > that.svgWidth - this.padding.right - this.padding.left || left > window.innerWidth - that.padding.right) {
+      left = left - that.tooltipStyle.width - this.padding.right;
       top = top - 10;
     }
     d3.select("#tooltip" + event.target.parentNode.id.slice(-1))
@@ -257,39 +264,39 @@ let test=[];
       .style("top", top + "px")
       .text(name + ":" + (d[1] - d[0]));
   }
-  private colorInfo(){
-   var that = this;
+  private colorInfo() {
+    var that = this;
 
-   var legend = d3.select("#" + this.id).append("svg")
-   .attr("width", 170)
-   .attr("height", this.svgHeight)
-   .selectAll(".info1")
-   .data(this.barData)
-   .enter()
-   .append('g')
+    var legend = d3.select("#" + this.id).append("svg")
+      .attr("width", 170)
+      .attr("height", this.svgHeight)
+      .selectAll(".info1")
+      .data(this.barData)
+      .enter()
+      .append('g')
 
 
- legend.append('rect')
-   .attr('class', 'bar')
-   .attr('x', 10 )
-   .attr('y', function (d, i) {
-     return (i * 20)+5;
-   })
-   .attr('width', 10)
-   .attr('height', 10)
-   .style('fill', function (d, i) {
+    legend.append('rect')
+      .attr('class', 'bar')
+      .attr('x', 10)
+      .attr('y', function (d, i) {
+        return (i * 20) + 5;
+      })
+      .attr('width', 10)
+      .attr('height', 10)
+      .style('fill', function (d, i) {
 
-     return that.color[i];
-   });
+        return that.color[i];
+      });
 
- legend.append('text')
-   .attr('x', 25)
-   .attr('y', function (d, i) {
-     return (i * 20) + 15;
-   })
-   .text(function (d) {
-     return d.key;
-   });
+    legend.append('text')
+      .attr('x', 25)
+      .attr('y', function (d, i) {
+        return (i * 20) + 15;
+      })
+      .text(function (d) {
+        return d.key;
+      });
 
 
 
@@ -301,7 +308,7 @@ let test=[];
 
     if (currentWidth < this.svgWidth) {
       this.xscale.range([this.padding.left, currentWidth - this.padding.right]);
-      this.y_axis.tickSize((-currentWidth +  this.padding.right+ this.padding.left));
+      this.y_axis.tickSize((-currentWidth + this.padding.right + this.padding.left));
 
       this.svg.select('#x_axis')
         .call(this.x_axis);
@@ -310,7 +317,7 @@ let test=[];
       this.svg.selectAll('.bar')
         .attr("x", function (d) { return that.xscale(that.monthData[d.data.month - 1]) - 15 });
       this.svg.selectAll('.svgborder')
-      .attr("width", currentWidth- this.padding.right - this.padding.left);
+        .attr("width", currentWidth - this.padding.right - this.padding.left);
 
     };
   }

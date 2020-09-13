@@ -12,7 +12,7 @@ import d3Tip from "d3-tip";
 })
 
 export class LineChartComponent implements AfterViewInit {
-  @Input() lineData;
+  @Input() yearOverYearData;
   @Input() svgWidth: number;
   @Input() svgHeight: number;
   @Input() id: string;
@@ -41,14 +41,11 @@ export class LineChartComponent implements AfterViewInit {
     var id = this.id
     this.last1 = id.slice(-1);
     this.initSvg();
-     this.dataManipulation(this.lineData);
-
-
+    this.dataManipulation(this.yearOverYearData);
 
   };
   private dataManipulation(data) {
     data.forEach((m, i) => {
-
       for (var j = 0; j < 12; j++) {
         const monthIndex = j + 1;
         const item = data[i].MonthYear.find(item => item.month === monthIndex);
@@ -56,20 +53,14 @@ export class LineChartComponent implements AfterViewInit {
           // data[i].MonthYear.push(item);
           data[i].MonthYear.splice(j, 0, { month: monthIndex, Awarded: 0 });
         } else {
-
-
         }
       }
     })
-    console.log("linedata" + data)
-    debugger
+    console.log("linedata" + data);
     this.initScale(data);
     this.drawAxis();
     this.drawLine(data);
-
     this.colorInfo(data);
-
-
     this.onResize();
     // debugger
   }
@@ -255,7 +246,6 @@ export class LineChartComponent implements AfterViewInit {
       .enter()
       .append('g');
 
-
     legend.append('rect')
       .attr('class', 'line')
       .attr('x', 10)
@@ -280,10 +270,8 @@ export class LineChartComponent implements AfterViewInit {
   }
   private onResize(this) {
     var that = this;
-    // console.log(window.innerWidth)
     // get the current width of the div where the chart appear, and attribute it to Svg
-    var currentWidth = parseInt(d3.select("#" + that.id).style('width'))
-
+    var currentWidth = parseInt(d3.select("#" + that.id).style('width'));
     if (currentWidth < this.svgWidth) {
       // Update the X scale and Axis
       this.xscale.range([this.padding.left, currentWidth - this.padding.right]);
@@ -305,6 +293,8 @@ export class LineChartComponent implements AfterViewInit {
       this.svg.selectAll('.lineborder')
         .attr("width", currentWidth - this.padding.right - this.padding.left)
     };
+
+    //value 900 is putting as static after working on it
     if (currentWidth < 900) {
       this.x_axis.tickValues(that.xscale.domain().filter(function (d, i) { return !(i % 2); }));
     }
